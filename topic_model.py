@@ -7,6 +7,7 @@
 
 from gensim.corpora import Dictionary
 from gensim.models.ldamodel import LdaModel
+from gensim.models.wrappers import LdaMallet
 from gensim.models.coherencemodel import CoherenceModel
 
 # TopicModel
@@ -15,9 +16,13 @@ class TopicModel:
 
     # class constructor ========================================================
 
-    def __init__ (self, mallet=False):
+    def __init__ (self, mallet_path=None):
 
-        self.mallet = mallet
+        if mallet_path:
+            self.mallet = True
+            self.mallet_path = mallet_path
+        else:
+            self.mallet = False
 
         return
 
@@ -27,7 +32,7 @@ class TopicModel:
     #
     # inputs:   list of documents as word lists (preprocessing assumed)
     # outputs:  none
-    # purpose:  builds a gensim dictionary and corpus of training set
+    # purpose:  builds a Gensim dictionary and corpus of training set
 
     def build_dictionary (self, inputs):
 
@@ -46,21 +51,26 @@ class TopicModel:
     #
     # inputs:   number of topics
     # outputs:  none
-    # purpose:  constructs a gensim LDA topic model from dictionary
+    # purpose:  constructs a Gensim LDA topic model from dictionary
 
     def build_model (self, n_topics):
 
         if n_topics == 0:
             raise Exception("Number of topics must be greater than 0")
 
-        model = LdaModel(corpus=self.corpus,
-                         id2word=self.dictionary,
-                         num_topics=n_topics,
-                         minimum_probability=0.0)
-
-        topics = model.print_topics(20)
+        if self.mallet:
+            model = LdaMallet(self.mallet_path,
+                              corpus=self.corpus,
+                              id2word=self.dictionary,
+                              num_topics=n_topics)
+        else:
+            model = LdaModel(corpus=self.corpus,
+                             id2word=self.dictionary,
+                             num_topics=n_topics,
+                             minimum_probability=0.0)
 
         self.model = model
+        self.n_topics = n_topics
 
         return
 
@@ -102,3 +112,27 @@ class TopicModel:
         vector = [round(pair[1], spec) for pair in self.model[bow]]
 
         return vector
+
+    def get_topics (self):
+
+        return self.model.print_topics(self.n_topics)
+
+    # get_num_topics
+    #
+    # inputs:   none
+    # outputs:  number of topics
+    # purpose:  public getter for n_topics
+
+    def get_num_topics (self):
+
+        return self.n_topics
+
+    # get_num_topics
+    #
+    # inputs:   none
+    # outputs:  whether model is a MALLET model
+    # purpose:  public getter for mallet
+
+    def is_mallet (self):
+
+        return self.mallet
