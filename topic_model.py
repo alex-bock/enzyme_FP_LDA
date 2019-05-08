@@ -112,6 +112,13 @@ class TopicModel:
         vector = [round(pair[1], spec) for pair in self.model[bow]]
 
         return vector
+    
+    # get_topics
+    #
+    # inputs:   none
+    # outputs:  distribution of generated topics
+    # purpose:  returns probability-constituent distributions for each
+    #           generated topic
 
     def get_topics (self):
 
@@ -127,7 +134,7 @@ class TopicModel:
 
         return self.n_topics
 
-    # get_num_topics
+    # is_mallet
     #
     # inputs:   none
     # outputs:  whether model is a MALLET model
